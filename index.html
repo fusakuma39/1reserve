@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>1年生 ボランティア登録</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -60,16 +60,22 @@
         
         .nav-active { color: var(--color-main); font-weight: bold; }
         .nav-inactive { color: #9CA3AF; }
+
+        /* スマホのホームバー（Safe Area）対応 */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        }
     </style>
 </head>
-<body class="text-gray-800 h-screen flex flex-col overflow-hidden" data-theme="1">
+<!-- h-screenではなく h-[100dvh] を使用してスマホのアドレスバー伸縮に対応 -->
+<body class="text-gray-800 h-[100dvh] w-full flex flex-col overflow-hidden bg-gray-50" data-theme="1">
 
     <!-- 共通ヘッダー（固定） -->
     <header class="flex-none bg-white pt-3 pb-2 px-4 shadow-sm border-b border-gray-100 z-20 relative">
         <h1 class="text-lg font-bold text-center text-gray-800 mb-2"><span class="text-theme-main mr-1 transition-colors">■</span>1年生 ボランティア登録</h1>
         
         <div class="max-w-md mx-auto flex gap-2 items-center">
-            <div class="flex-1">
+            <div class="flex-1 min-w-0">
                 <input type="text" id="parentName" placeholder="保護者氏名（例：山田）" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-main focus:bg-white transition-all text-sm font-bold text-gray-700 placeholder-gray-400">
             </div>
             <div class="flex flex-none gap-1 w-28">
@@ -86,11 +92,11 @@
     </header>
 
     <!-- メインコンテンツ領域（スクロール） -->
-    <main class="flex-1 overflow-y-auto relative bg-gray-50 hide-scrollbar" id="main-scroll-area">
+    <!-- min-h-0 を指定してFlexbox内でのオーバーフローを正しく処理させる -->
+    <main class="flex-1 min-h-0 overflow-y-auto relative w-full hide-scrollbar" id="main-scroll-area">
         
         <!-- ビュー1: 日別登録画面 -->
-        <div id="view-daily" class="max-w-md mx-auto pb-24">
-            
+        <div id="view-daily" class="max-w-md mx-auto pb-6">
             <div class="bg-white px-2 py-3 flex justify-between items-center shadow-sm sticky top-0 z-10 border-b border-gray-100">
                 <button onclick="changeDate(-1)" class="p-2 text-gray-400 hover:text-theme-main active:scale-90 transition-all rounded-full hover:bg-theme-bg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
@@ -125,7 +131,7 @@
         </div>
 
         <!-- ビュー2: 一覧画面 -->
-        <div id="view-list" class="hidden max-w-md mx-auto pb-24 bg-white min-h-full">
+        <div id="view-list" class="hidden max-w-md mx-auto pb-6 bg-white min-h-full">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 sticky top-0 z-10 flex justify-between items-end">
                 <h2 class="font-bold text-gray-700 text-sm">📅 日程一覧</h2>
                 <p class="text-[10px] text-gray-500">タップしてその日へ移動</p>
@@ -134,7 +140,7 @@
         </div>
 
         <!-- ビュー3: 教員用画面 -->
-        <div id="view-teacher" class="hidden max-w-md mx-auto pb-24">
+        <div id="view-teacher" class="hidden max-w-md mx-auto pb-6">
             <div class="bg-indigo-600 px-3 py-3 flex justify-between items-center shadow-md sticky top-0 z-10">
                 <button onclick="changeTeacherDate(-1)" class="p-1.5 text-indigo-200 hover:text-white active:scale-90 transition-all rounded-full hover:bg-indigo-500">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
@@ -175,7 +181,6 @@
                         <button onclick="addCustomSlot()" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold hover:bg-gray-200">+ 追加</button>
                     </div>
                     
-                    <!-- 編集欄のコンテナ -->
                     <div id="teacher-slots-container" class="space-y-2 mb-2"></div>
                 </section>
                 
@@ -186,8 +191,8 @@
         </div>
     </main>
 
-    <!-- 送信ボタンエリア -->
-    <div id="submit-footer" class="flex-none bg-white/95 backdrop-blur-sm px-4 py-2 border-t border-gray-200 z-30 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <!-- 送信ボタンエリア (固定枠) -->
+    <div id="submit-footer" class="flex-none bg-white/95 backdrop-blur-sm px-4 py-3 border-t border-gray-200 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] w-full">
         <div class="max-w-md mx-auto flex items-center justify-between gap-3">
             <div class="text-xs font-bold text-gray-600">
                 <span id="display-current-class-footer" class="text-theme-text transition-colors">1組</span> 選択: <span id="selected-count" class="text-theme-text text-lg transition-colors">0</span> 件
@@ -198,8 +203,8 @@
         </div>
     </div>
 
-    <!-- ボトムナビゲーション -->
-    <nav class="flex-none bg-white border-t border-gray-200 pb-safe z-30">
+    <!-- ボトムナビゲーション (固定枠・pb-safeでホームバー対応) -->
+    <nav class="flex-none bg-white border-t border-gray-200 z-30 w-full pb-safe">
         <div class="max-w-md mx-auto flex justify-around">
             <button onclick="switchView('daily')" id="nav-daily" class="nav-active flex-1 py-2 flex flex-col items-center gap-1 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
@@ -220,6 +225,7 @@
     <div id="passwordModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-95 transition-transform" id="passwordModalContent">
             <h3 class="text-lg font-bold mb-2">教員用パスワード</h3>
+            <p class="text-xs text-gray-500 mb-4">設定画面に入るためのパスワードを入力してください。</p>
             <input type="password" id="teacherPasswordInput" class="w-full px-4 py-2 bg-gray-50 border rounded-lg mb-4 text-center text-xl tracking-widest" placeholder="****">
             <p id="passwordErrorMsg" class="text-red-500 text-xs font-bold mb-4 hidden text-center">パスワードが違います</p>
             <div class="flex gap-3">
@@ -231,14 +237,16 @@
     
     <div id="alertModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="alertModalContent">
-            <p id="alertModalMsg" class="text-sm font-bold text-gray-700 mb-5"></p>
+            <h3 class="text-base font-bold text-gray-800 mb-1">確認してください</h3>
+            <p id="alertModalMsg" class="text-xs text-gray-600 mb-5"></p>
             <button onclick="closeAlertModal()" class="w-full bg-gray-100 font-bold py-2.5 rounded-lg text-sm">閉じる</button>
         </div>
     </div>
 
     <div id="confirmModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[70] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-95 transition-transform" id="confirmModalContent">
-            <p id="confirmModalMsg" class="text-sm font-bold text-gray-700 mb-5"></p>
+            <h3 class="text-base font-bold text-gray-800 mb-2">確認</h3>
+            <p id="confirmModalMsg" class="text-xs text-gray-600 mb-5"></p>
             <div class="flex gap-2">
                 <button onclick="closeConfirmModal(false)" class="flex-1 bg-gray-100 font-bold py-2.5 rounded-lg text-sm">キャンセル</button>
                 <button onclick="closeConfirmModal(true)" id="confirmConfirmBtn" class="flex-1 bg-red-500 text-white font-bold py-2.5 rounded-lg text-sm">実行する</button>
@@ -248,6 +256,9 @@
 
     <div id="successModal" class="fixed inset-0 bg-gray-900/40 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="successModalContent">
+            <div class="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
             <h2 class="text-lg font-bold text-gray-800 mb-1" id="successModalTitle">完了しました</h2>
             <p class="text-xs text-gray-500 mb-5" id="successModalText"></p>
             <button onclick="closeSuccessModal()" class="w-full bg-gray-100 font-bold py-2.5 rounded-lg text-sm">閉じる</button>
@@ -261,7 +272,7 @@
                     <div id="details-date" class="text-[10px] text-theme-text font-bold"></div>
                     <h3 id="details-title" class="text-base font-extrabold text-theme-text"></h3>
                 </div>
-                <button onclick="closeVolunteerDetails()" class="p-1.5 bg-white text-gray-400 rounded-full shadow-sm">
+                <button onclick="closeVolunteerDetails()" class="p-1.5 bg-white text-gray-400 rounded-full shadow-sm hover:bg-gray-100 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
@@ -539,22 +550,15 @@
                 const count2 = slot.registeredParents2 ? slot.registeredParents2.length : 0;
                 const selectedDate = scheduleData[currentDateIndex].dateStr;
                 
-                // ★はみ出し修正箇所（flex-wrapを外し、min-w-0 とフレックス配分で確実に収める）
                 div.innerHTML = `
-                    <div class="flex gap-1.5 items-center w-full">
+                    <div class="flex flex-wrap gap-1.5 items-center w-full">
                         <input type="text" value="${slot.name}" onchange="updateSlotField(${index}, 'name', this.value)" placeholder="項目名" class="flex-1 min-w-0 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <input type="text" value="${slot.timeInfo || ''}" onchange="updateSlotField(${index}, 'timeInfo', this.value)" placeholder="時間" class="w-16 sm:w-20 flex-none px-1 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center font-mono">
                         <button onclick="removeTeacherSlot(${index})" class="text-red-400 hover:text-red-600 px-1 flex-none"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                     </div>
                     <div class="flex flex-col gap-1 border-t border-gray-100 pt-1.5">
-                        <div class="flex items-center gap-1">
-                            <div class="w-9 text-center text-[9px] font-bold text-gray-400 leading-tight flex-none">1組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 1)">(${count1}名)</span></div>
-                            <input type="text" value="${slot.teacherNote1 || ''}" onchange="updateSlotField(${index}, 'teacherNote1', this.value)" placeholder="1組特記事項" class="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="w-9 text-center text-[9px] font-bold text-gray-400 leading-tight flex-none">2組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 2)">(${count2}名)</span></div>
-                            <input type="text" value="${slot.teacherNote2 || ''}" onchange="updateSlotField(${index}, 'teacherNote2', this.value)" placeholder="2組特記事項" class="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
+                        <div class="flex items-center gap-1"><div class="w-9 text-center text-[9px] font-bold text-gray-400 leading-tight flex-none">1組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 1)">(${count1}名)</span></div><input type="text" value="${slot.teacherNote1 || ''}" onchange="updateSlotField(${index}, 'teacherNote1', this.value)" placeholder="1組特記事項" class="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                        <div class="flex items-center gap-1"><div class="w-9 text-center text-[9px] font-bold text-gray-400 leading-tight flex-none">2組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 2)">(${count2}名)</span></div><input type="text" value="${slot.teacherNote2 || ''}" onchange="updateSlotField(${index}, 'teacherNote2', this.value)" placeholder="2組特記事項" class="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -682,15 +686,16 @@
             document.getElementById('details-title').innerText = slot.name;
             const list = document.getElementById('details-list'); list.innerHTML = '';
             const parents = classNum === 1 ? slot.registeredParents1 : slot.registeredParents2;
+            
             if (parents && parents.length > 0) {
                 parents.forEach((p, idx) => {
-                    const btn = isTeacher ? `<button onclick="deleteVolunteer('${dateStr}', ${slotId}, ${classNum}, ${idx})" class="text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 border border-red-100">取消</button>` : '';
-                    const memo = p.memo ? `<div class="text-[11px] text-gray-600 bg-gray-50 p-1.5 rounded">${p.memo}</div>` : '';
-                    const item = document.createElement('div'); item.className = 'bg-white border p-2 mb-2 shadow-sm rounded-xl flex flex-col gap-1';
-                    item.innerHTML = `<div class="flex items-center justify-between"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-theme-light text-theme-main flex items-center justify-center font-bold text-[10px]">${p.name.charAt(0)}</div><span class="font-bold text-xs">${p.name}</span></div>${btn}</div>${memo}`;
+                    const btn = isTeacher ? `<button onclick="deleteVolunteer('${dateStr}', ${slotId}, ${classNum}, ${idx})" class="text-red-400 hover:text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 border border-red-100">取消</button>` : '';
+                    const memo = p.memo ? `<div class="text-[11px] text-gray-600 bg-gray-50 p-1.5 rounded break-words">${p.memo}</div>` : '';
+                    const item = document.createElement('div'); item.className = 'bg-white border border-gray-100 p-2 mb-2 shadow-sm rounded-xl flex flex-col gap-1.5';
+                    item.innerHTML = `<div class="flex items-center justify-between"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-theme-light text-theme-main flex items-center justify-center font-bold text-[10px]">${p.name.charAt(0)}</div><span class="font-bold text-xs text-gray-800">${p.name}</span></div>${btn}</div>${memo}`;
                     list.appendChild(item);
                 });
-            } else { list.innerHTML = `<div class="text-center text-xs text-gray-400 py-3">登録なし</div>`; }
+            } else { list.innerHTML = `<div class="text-center text-xs text-gray-400 py-3">現在登録者はいません</div>`; }
             toggleModal('volunteerDetailsModal', true, 'bottom');
         }
     </script>
