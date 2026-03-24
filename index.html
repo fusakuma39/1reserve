@@ -68,7 +68,6 @@
     <header class="flex-none bg-white pt-3 pb-2 px-4 shadow-sm border-b border-gray-100 z-20 relative">
         <h1 class="text-lg font-bold text-center text-gray-800 mb-2"><span class="text-theme-main mr-1 transition-colors">■</span>1年生 ボランティア登録</h1>
         
-        <!-- 名前とクラス選択 -->
         <div class="max-w-md mx-auto flex gap-2 items-center">
             <div class="flex-1">
                 <input type="text" id="parentName" placeholder="保護者氏名（例：山田）" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-main focus:bg-white transition-all text-sm font-bold text-gray-700 placeholder-gray-400">
@@ -89,12 +88,9 @@
     <!-- メインコンテンツ領域（スクロール） -->
     <main class="flex-1 overflow-y-auto relative bg-gray-50 hide-scrollbar" id="main-scroll-area">
         
-        <!-- ==========================================
-             ビュー1: 日別登録画面 (Daily View)
-        =========================================== -->
+        <!-- ビュー1: 日別登録画面 -->
         <div id="view-daily" class="max-w-md mx-auto pb-24">
             
-            <!-- 日付ナビゲーション -->
             <div class="bg-white px-2 py-3 flex justify-between items-center shadow-sm sticky top-0 z-10 border-b border-gray-100">
                 <button onclick="changeDate(-1)" class="p-2 text-gray-400 hover:text-theme-main active:scale-90 transition-all rounded-full hover:bg-theme-bg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
@@ -108,7 +104,6 @@
                 </button>
             </div>
 
-            <!-- スケジュールリスト -->
             <div id="daily-slots-container" class="p-3 space-y-3 transition-colors duration-300 bg-transparent">
                 <div class="text-center py-10 text-gray-400 text-sm">
                     <svg class="animate-spin h-6 w-6 mx-auto mb-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -116,7 +111,6 @@
                 </div>
             </div>
 
-            <!-- 電話番号案内 -->
             <div class="px-3 mt-4 mb-4">
                 <div class="bg-white rounded-xl p-4 text-center border border-gray-200 shadow-sm">
                     <p class="text-xs font-bold text-gray-700 mb-1">予定の変更について</p>
@@ -130,9 +124,7 @@
             </div>
         </div>
 
-        <!-- ==========================================
-             ビュー2: 一覧画面 (List View)
-        =========================================== -->
+        <!-- ビュー2: 一覧画面 -->
         <div id="view-list" class="hidden max-w-md mx-auto pb-24 bg-white min-h-full">
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 sticky top-0 z-10 flex justify-between items-end">
                 <h2 class="font-bold text-gray-700 text-sm">📅 日程一覧</h2>
@@ -141,9 +133,7 @@
             <div id="list-container" class="divide-y divide-gray-100"></div>
         </div>
 
-        <!-- ==========================================
-             ビュー3: 教員用画面 (Teacher View)
-        =========================================== -->
+        <!-- ビュー3: 教員用画面 -->
         <div id="view-teacher" class="hidden max-w-md mx-auto pb-24">
             <div class="bg-indigo-600 px-3 py-3 flex justify-between items-center shadow-md sticky top-0 z-10">
                 <button onclick="changeTeacherDate(-1)" class="p-1.5 text-indigo-200 hover:text-white active:scale-90 transition-all rounded-full hover:bg-indigo-500">
@@ -162,7 +152,6 @@
             </div>
 
             <div class="p-3 space-y-3">
-                <!-- 休日設定トグル -->
                 <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between shadow-sm">
                     <div class="text-sm font-bold text-red-700">この日をお休みにする</div>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -172,7 +161,6 @@
                 </div>
 
                 <section id="teacher-slots-wrapper" class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 transition-opacity">
-                    <!-- プリセット -->
                     <div class="mb-3">
                         <p class="text-[10px] font-bold text-indigo-500 mb-1.5">▼ プリセットで上書き</p>
                         <div class="grid grid-cols-3 gap-1">
@@ -187,6 +175,7 @@
                         <button onclick="addCustomSlot()" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold hover:bg-gray-200">+ 追加</button>
                     </div>
                     
+                    <!-- 編集欄のコンテナ -->
                     <div id="teacher-slots-container" class="space-y-2 mb-2"></div>
                 </section>
                 
@@ -197,9 +186,7 @@
         </div>
     </main>
 
-    <!-- ==========================================
-         送信ボタンエリア (固定)
-    =========================================== -->
+    <!-- 送信ボタンエリア -->
     <div id="submit-footer" class="flex-none bg-white/95 backdrop-blur-sm px-4 py-2 border-t border-gray-200 z-30 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div class="max-w-md mx-auto flex items-center justify-between gap-3">
             <div class="text-xs font-bold text-gray-600">
@@ -211,9 +198,7 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         ボトムナビゲーション
-    =========================================== -->
+    <!-- ボトムナビゲーション -->
     <nav class="flex-none bg-white border-t border-gray-200 pb-safe z-30">
         <div class="max-w-md mx-auto flex justify-around">
             <button onclick="switchView('daily')" id="nav-daily" class="nav-active flex-1 py-2 flex flex-col items-center gap-1 transition-colors">
@@ -231,10 +216,7 @@
         </div>
     </nav>
 
-    <!-- ==========================================
-         モーダル群 (z-index を高く設定し、重なりを修正)
-    =========================================== -->
-    <!-- パスワード -->
+    <!-- モーダル群 -->
     <div id="passwordModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-95 transition-transform" id="passwordModalContent">
             <h3 class="text-lg font-bold mb-2">教員用パスワード</h3>
@@ -247,7 +229,6 @@
         </div>
     </div>
     
-    <!-- アラート -->
     <div id="alertModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="alertModalContent">
             <p id="alertModalMsg" class="text-sm font-bold text-gray-700 mb-5"></p>
@@ -255,7 +236,6 @@
         </div>
     </div>
 
-    <!-- 確認(Confirm) -->
     <div id="confirmModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[70] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-95 transition-transform" id="confirmModalContent">
             <p id="confirmModalMsg" class="text-sm font-bold text-gray-700 mb-5"></p>
@@ -266,7 +246,6 @@
         </div>
     </div>
 
-    <!-- 成功 -->
     <div id="successModal" class="fixed inset-0 bg-gray-900/40 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="successModalContent">
             <h2 class="text-lg font-bold text-gray-800 mb-1" id="successModalTitle">完了しました</h2>
@@ -275,7 +254,6 @@
         </div>
     </div>
 
-    <!-- 詳細確認＆削除 (z-50) -->
     <div id="volunteerDetailsModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-end items-center z-50 opacity-0 transition-opacity" onclick="closeVolunteerDetails(event)">
         <div class="bg-white rounded-2xl max-w-md w-11/12 max-h-[80vh] flex flex-col shadow-2xl transform translate-y-full transition-transform" id="volunteerDetailsContent" onclick="event.stopPropagation()">
             <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-theme-bg rounded-t-2xl">
@@ -297,11 +275,10 @@
         // ==========================================
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzexYU9MFNdk_lL6o9uZ5thpa7_oiTvqd3I5ZWePASDw9QKZAwIS8Is7mhHuIHj6t2LMg/exec";
 
-        // ==========================================
         let scheduleData = [];
         let currentDateIndex = 0; 
         let currentClass = 1; 
-        let pendingSelections = {}; // {"3/30_1時間目": {memo: ""}}
+        let pendingSelections = {}; 
         let teacherEditingData = [];
         let teacherEditingHoliday = false; 
         let confirmCallback = null;
@@ -310,13 +287,11 @@
             fetchScheduleData();
         };
 
-        // --- 通信処理 ---
         function fetchScheduleData() {
             fetch(GAS_API_URL)
                 .then(res => res.json())
                 .then(serverData => {
                     scheduleData = serverData;
-                    
                     const today = new Date();
                     const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
                     let foundIndex = scheduleData.findIndex(d => d.dateStr === todayStr);
@@ -326,7 +301,6 @@
                     if(!document.getElementById('view-list').classList.contains('hidden')) renderListView();
                 })
                 .catch(err => {
-                    console.error(err);
                     document.getElementById('daily-slots-container').innerHTML = `<div class="w-full text-center py-10 text-red-500 font-bold text-sm">通信エラー。再読み込みしてください。</div>`;
                 });
         }
@@ -354,7 +328,6 @@
             });
         }
 
-        // --- ビュー切り替え ---
         function switchView(viewName) {
             document.getElementById('view-daily').classList.add('hidden');
             document.getElementById('view-list').classList.add('hidden');
@@ -396,7 +369,6 @@
         }
         function updateSelectedCount() { document.getElementById('selected-count').innerText = Object.keys(pendingSelections).length; }
 
-        // --- 日別表示 ---
         function changeDate(delta) {
             let newIndex = currentDateIndex + delta;
             if (newIndex >= 0 && newIndex < scheduleData.length) {
@@ -404,6 +376,7 @@
                 if (!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
             }
         }
+        
         function renderDailyView() {
             const day = scheduleData[currentDateIndex];
             if (!day) return;
@@ -474,7 +447,6 @@
             if (pendingSelections[key]) pendingSelections[key].memo = value;
         }
 
-        // --- 一覧表示 ---
         function renderListView() {
             const container = document.getElementById('list-container');
             container.innerHTML = '';
@@ -567,48 +539,76 @@
                 const count2 = slot.registeredParents2 ? slot.registeredParents2.length : 0;
                 const selectedDate = scheduleData[currentDateIndex].dateStr;
                 
+                // ★はみ出し修正箇所（flex-wrapを外し、min-w-0 とフレックス配分で確実に収める）
                 div.innerHTML = `
-                    <div class="flex flex-wrap gap-1.5 items-center">
-                        <input type="text" value="${slot.name}" onchange="teacherEditingData[${index}].name = this.value" placeholder="項目名" class="flex-1 min-w-[100px] px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <input type="text" value="${slot.timeInfo || ''}" onchange="teacherEditingData[${index}].timeInfo = this.value" placeholder="時間" class="w-20 flex-none px-1 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center font-mono">
+                    <div class="flex gap-1.5 items-center w-full">
+                        <input type="text" value="${slot.name}" onchange="updateSlotField(${index}, 'name', this.value)" placeholder="項目名" class="flex-1 min-w-0 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" value="${slot.timeInfo || ''}" onchange="updateSlotField(${index}, 'timeInfo', this.value)" placeholder="時間" class="w-16 sm:w-20 flex-none px-1 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center font-mono">
                         <button onclick="removeTeacherSlot(${index})" class="text-red-400 hover:text-red-600 px-1 flex-none"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                     </div>
                     <div class="flex flex-col gap-1 border-t border-gray-100 pt-1.5">
-                        <div class="flex items-center gap-1"><div class="w-8 text-center text-[9px] font-bold text-gray-400 leading-tight">1組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 1)">(${count1}名)</span></div><input type="text" value="${slot.teacherNote1 || ''}" onchange="teacherEditingData[${index}].teacherNote1 = this.value" class="flex-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
-                        <div class="flex items-center gap-1"><div class="w-8 text-center text-[9px] font-bold text-gray-400 leading-tight">2組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 2)">(${count2}名)</span></div><input type="text" value="${slot.teacherNote2 || ''}" onchange="teacherEditingData[${index}].teacherNote2 = this.value" class="flex-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-9 text-center text-[9px] font-bold text-gray-400 leading-tight flex-none">1組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 1)">(${count1}名)</span></div>
+                            <input type="text" value="${slot.teacherNote1 || ''}" onchange="updateSlotField(${index}, 'teacherNote1', this.value)" placeholder="1組特記事項" class="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-9 text-center text-[9px] font-bold text-gray-400 leading-tight flex-none">2組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 2)">(${count2}名)</span></div>
+                            <input type="text" value="${slot.teacherNote2 || ''}" onchange="updateSlotField(${index}, 'teacherNote2', this.value)" placeholder="2組特記事項" class="flex-1 min-w-0 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
                     </div>
                 `;
                 container.appendChild(div);
             });
         }
+        function updateSlotField(index, field, value) { teacherEditingData[index][field] = value; }
+
+        function generateFrontPresetSlots(presetType, dayOfWeek) {
+            const baseSlots = [
+                { name: '朝の準備', timeInfo: '8:00-8:25' }, { name: '朝学習', timeInfo: '8:25-8:40' },
+                { name: '1時間目', timeInfo: '8:45-9:30' }, { name: '2時間目', timeInfo: '9:35-10:20' },
+                { name: '中休み', timeInfo: '10:20-10:40' }, { name: '3時間目', timeInfo: '10:40-11:25' },
+                { name: '4時間目', timeInfo: '11:30-12:15' }
+            ];
+            let slots = [...baseSlots];
+            if (presetType === 'normal' || presetType === 'lunch4') slots.push({ name: '給食', timeInfo: '12:15-13:00' });
+            if (presetType === 'normal') {
+                slots.push({ name: '5時間目', timeInfo: (dayOfWeek === '金') ? '13:20-14:05' : '13:40-14:25' });
+                slots.push({ name: '帰りの準備', timeInfo: (dayOfWeek === '金') ? '14:05-14:20' : '14:25-14:40' });
+            } else if (presetType === 'lunch4') {
+                slots.push({ name: '帰りの準備', timeInfo: '13:00-13:25' });
+            } else if (presetType === 'noLunch4') {
+                slots.push({ name: '帰りの準備', timeInfo: '12:15-12:30' });
+            }
+            return slots.map((s, idx) => ({ id: Date.now() + idx, name: s.name, timeInfo: s.timeInfo, teacherNote1: '', teacherNote2: '', registeredParents1: [], registeredParents2: [] }));
+        }
+
         function applyPreset(presetType) {
-            showConfirmModal('現在の項目を消去して、プリセットで上書きしますか？', (res) => {
-                if (res) {
+            let warnMsg = '現在の項目をすべて消去して、プリセットで上書きしますか？';
+            const hasRegistrations = teacherEditingData.some(s => (s.registeredParents1 && s.registeredParents1.length > 0) || (s.registeredParents2 && s.registeredParents2.length > 0));
+            if(hasRegistrations) warnMsg += '<br><span class="text-xs text-red-500">※すでに登録している保護者のデータが消去される可能性があります！</span>';
+
+            showConfirmModal(warnMsg, (result) => {
+                if (result) {
                     const dayData = scheduleData[currentDateIndex];
                     document.getElementById('teacher-holiday-toggle').checked = false; toggleTeacherHoliday(false);
-                    
-                    const baseSlots = [
-                        { name: '朝の準備', timeInfo: '8:00-8:25' }, { name: '朝学習', timeInfo: '8:25-8:40' },
-                        { name: '1時間目', timeInfo: '8:45-9:30' }, { name: '2時間目', timeInfo: '9:35-10:20' },
-                        { name: '中休み', timeInfo: '10:20-10:40' }, { name: '3時間目', timeInfo: '10:40-11:25' },
-                        { name: '4時間目', timeInfo: '11:30-12:15' }
-                    ];
-                    let slots = [...baseSlots];
-                    if (presetType === 'normal' || presetType === 'lunch4') slots.push({ name: '給食', timeInfo: '12:15-13:00' });
-                    if (presetType === 'normal') {
-                        slots.push({ name: '5時間目', timeInfo: (dayData.dayOfWeek === '金') ? '13:20-14:05' : '13:40-14:25' });
-                        slots.push({ name: '帰りの準備', timeInfo: (dayData.dayOfWeek === '金') ? '14:05-14:20' : '14:25-14:40' });
-                    } else if (presetType === 'lunch4') slots.push({ name: '帰りの準備', timeInfo: '13:00-13:25' });
-                    else if (presetType === 'noLunch4') slots.push({ name: '帰りの準備', timeInfo: '12:15-12:30' });
-                    
-                    teacherEditingData = slots.map((s, idx) => ({ id: Date.now() + idx, name: s.name, timeInfo: s.timeInfo, teacherNote1: '', teacherNote2: '', registeredParents1: [], registeredParents2: [] }));
+                    teacherEditingData = generateFrontPresetSlots(presetType, dayData.dayOfWeek);
                     renderTeacherSlots();
                 }
             });
         }
+
         function addCustomSlot() { teacherEditingData.push({ id: Date.now(), name: '新しい項目', timeInfo: '', teacherNote1: '', teacherNote2: '', registeredParents1: [], registeredParents2: [] }); renderTeacherSlots(); }
-        function removeTeacherSlot(index) { showConfirmModal('この項目を削除しますか？', (res) => { if(res){ teacherEditingData.splice(index, 1); renderTeacherSlots(); } }); }
-        
+        function removeTeacherSlot(index) {
+            const slot = teacherEditingData[index];
+            let msg = 'この項目を削除しますか？';
+            if ((slot.registeredParents1 && slot.registeredParents1.length > 0) || (slot.registeredParents2 && slot.registeredParents2.length > 0)) {
+                msg += '<br><span class="text-xs text-red-500">※すでに登録している人がいます！</span>';
+            }
+            showConfirmModal(msg, (result) => {
+                if (result) { teacherEditingData.splice(index, 1); renderTeacherSlots(); }
+            });
+        }
+
         function saveTeacherSettings() {
             const btn = document.getElementById('teacherSubmitBtn');
             const originalText = btn.innerText; btn.innerText = '保存中...'; btn.disabled = true;
@@ -623,7 +623,7 @@
             });
         }
 
-        // --- 送信処理・削除処理 ---
+        // --- 送信処理 ---
         function submitForm() {
             const name = document.getElementById('parentName').value.trim();
             if (!name) return showAlertModal('保護者氏名を入力してください。');
