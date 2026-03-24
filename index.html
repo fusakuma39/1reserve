@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>1年生 ボランティア登録</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { theme: { main: 'var(--color-main)', hover: 'var(--color-hover)', light: 'var(--color-light)', bg: 'var(--color-bg)', border: 'var(--color-border)', text: 'var(--color-text)' } } } }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDP+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --color-main: #EF4444; --color-hover: #DC2626; --color-light: #FEE2E2; --color-bg: #FEF2F2; --color-border: #FECACA; --color-text: #B91C1C; }
+        [data-theme="2"] { --color-main: #0EA5E9; --color-hover: #0284C7; --color-light: #E0F2FE; --color-bg: #F0F9FF; --color-border: #BAE6FD; --color-text: #0369A1; }
+        body { font-family: 'BIZ UDP Gothic', sans-serif; background-color: #F9FAFB; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .shift-checkbox:checked + div { background-color: var(--color-main); color: white; border-color: var(--color-main); box-shadow: 0 4px 6px -1px var(--color-border); }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 200ms; }
+        .memo-wrapper { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; opacity: 0; }
+        .memo-wrapper.open { max-height: 100px; opacity: 1; }
+        .nav-active { color: var(--color-main); font-weight: bold; }
+        .nav-inactive { color: #9CA3AF; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden" data-theme="1">
+
+    <header class="flex-none bg-white pt-3 pb-2 px-4 shadow-sm border-b border-gray-100 z-20 relative">
+        <h1 class="text-lg font-bold text-center text-gray-800 mb-2"><span class="text-theme-main mr-1 transition-colors">■</span>1年生 ボランティア登録</h1>
+        <div class="max-w-md mx-auto flex gap-2 items-center">
+            <div class="flex-1">
+                <input type="text" id="parentName" placeholder="保護者氏名（例：山田）" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-main focus:bg-white transition-all text-sm font-bold text-gray-700 placeholder-gray-400">
+            </div>
+            <div class="flex flex-none gap-1 w-28">
+                <label class="flex-1 cursor-pointer relative"><input type="radio" name="studentClass" value="1" class="peer sr-only" checked onchange="changeClass()"><div class="text-center py-2 border border-gray-200 rounded-lg peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500 font-bold text-gray-400 text-xs transition-all shadow-sm">1組</div></label>
+                <label class="flex-1 cursor-pointer relative"><input type="radio" name="studentClass" value="2" class="peer sr-only" onchange="changeClass()"><div class="text-center py-2 border border-gray-200 rounded-lg peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 font-bold text-gray-400 text-xs transition-all shadow-sm">2組</div></label>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto relative bg-gray-50 hide-scrollbar" id="main-scroll-area">
+        
+        <!-- ビュー1: 日別 -->
+        <div id="view-daily" class="max-w-md mx-auto pb-24">
+            <div class="bg-white px-2 py-3 flex justify-between items-center shadow-sm sticky top-0 z-10 border-b border-gray-100">
+                <button onclick="changeDate(-1)" class="p-2 text-gray-400 hover:text-theme-main active:scale-90 transition-all rounded-full hover:bg-theme-bg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg></button>
+                <div class="text-center cursor-pointer" onclick="switchView('list')"><div id="daily-date-display" class="text-xl font-extrabold text-gray-800 tracking-wide">--/--</div><div id="daily-day-display" class="text-xs font-bold text-gray-500">(--)</div></div>
+                <button onclick="changeDate(1)" class="p-2 text-gray-400 hover:text-theme-main active:scale-90 transition-all rounded-full hover:bg-theme-bg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg></button>
+            </div>
+            <div id="daily-slots-container" class="p-3 space-y-3 transition-colors duration-300">
+                <div class="text-center py-10 text-gray-400 text-sm">読み込み中...</div>
+            </div>
+            <div class="px-3 mt-4 mb-4">
+                <div class="bg-white rounded-xl p-4 text-center border border-gray-200 shadow-sm">
+                    <p class="text-xs font-bold text-gray-700 mb-1">予定の変更について</p>
+                    <p class="text-[10px] text-gray-500">送信後の予定変更は学校までご連絡ください。</p>
+                    <a href="tel:0458623280" class="text-theme-text font-extrabold text-sm mt-2 inline-flex items-center gap-1.5 bg-theme-bg px-3 py-1.5 rounded-lg active:opacity-70 transition-all border border-theme-border"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>045-862-3280</a>
+                    <div class="text-[9px] text-gray-400 mt-1 font-bold">（平日 午前8時〜17時）</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ビュー2: 一覧 -->
+        <div id="view-list" class="hidden max-w-md mx-auto pb-24 bg-white min-h-full">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 sticky top-0 z-10 flex justify-between items-end">
+                <h2 class="font-bold text-gray-700 text-sm">📅 日程一覧</h2><p class="text-[10px] text-gray-500">タップして移動</p>
+            </div>
+            <div id="list-container" class="divide-y divide-gray-100"></div>
+        </div>
+
+        <!-- ビュー3: 教員 -->
+        <div id="view-teacher" class="hidden max-w-md mx-auto pb-24">
+            <div class="bg-indigo-600 px-3 py-3 flex justify-between items-center shadow-md sticky top-0 z-10">
+                <button onclick="changeTeacherDate(-1)" class="p-1.5 text-indigo-200 hover:text-white active:scale-90 transition-all rounded-full hover:bg-indigo-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg></button>
+                <div class="text-center"><div class="text-xs text-indigo-200 font-bold mb-0.5">教員設定モード</div><div class="text-white font-bold flex items-center gap-1 justify-center"><span id="teacher-date-display" class="text-lg">--/--</span><span id="teacher-day-display" class="text-xs">(--)</span></div></div>
+                <button onclick="changeTeacherDate(1)" class="p-1.5 text-indigo-200 hover:text-white active:scale-90 transition-all rounded-full hover:bg-indigo-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg></button>
+            </div>
+            <div class="p-3 space-y-3">
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between shadow-sm"><div class="text-sm font-bold text-red-700">この日をお休みにする</div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="teacher-holiday-toggle" class="sr-only peer" onchange="toggleTeacherHoliday()"><div class="w-11 h-6 bg-white border border-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500 peer-checked:after:bg-white peer-checked:border-red-500"></div></label></div>
+                <section id="teacher-slots-wrapper" class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 transition-opacity">
+                    <div class="mb-3"><p class="text-[10px] font-bold text-indigo-500 mb-1.5">▼ プリセットで上書き</p><div class="grid grid-cols-3 gap-1"><button onclick="applyPreset('normal')" class="bg-indigo-50 text-indigo-700 text-[10px] font-bold py-2 rounded-md border border-indigo-100 active:bg-indigo-100">通常日課</button><button onclick="applyPreset('lunch4')" class="bg-indigo-50 text-indigo-700 text-[10px] font-bold py-2 rounded-md border border-indigo-100 active:bg-indigo-100">給食あり4限</button><button onclick="applyPreset('noLunch4')" class="bg-indigo-50 text-indigo-700 text-[10px] font-bold py-2 rounded-md border border-indigo-100 active:bg-indigo-100">給食なし4限</button></div></div>
+                    <div class="border-t border-gray-100 pt-3 mb-2 flex justify-between items-center"><h2 class="text-sm font-bold text-gray-800">項目の編集</h2><button onclick="addCustomSlot()" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold hover:bg-gray-200">+ 追加</button></div>
+                    <div id="teacher-slots-container" class="space-y-2 mb-2"></div>
+                </section>
+                <button onclick="saveTeacherSettings()" id="teacherSubmitBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-base shadow-md hover:bg-indigo-700 active:scale-95 transition-all mt-2">この日の設定を保存</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- ボトム周辺 UI -->
+    <div id="submit-footer" class="flex-none bg-white/95 backdrop-blur-sm px-4 py-2 border-t border-gray-200 z-30 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto flex items-center justify-between gap-3">
+            <div class="text-xs font-bold text-gray-600"><span id="display-current-class-footer" class="text-theme-text transition-colors">1組</span> 選択: <span id="selected-count" class="text-theme-text text-lg transition-colors">0</span> 件</div>
+            <button onclick="submitForm()" id="submitBtn" class="flex-1 bg-theme-main text-white font-bold py-2.5 rounded-xl text-base shadow-md hover:bg-theme-hover active:scale-95 transition-all disabled:opacity-50">登録内容を送信</button>
+        </div>
+    </div>
+
+    <nav class="flex-none bg-white border-t border-gray-200 pb-safe z-30">
+        <div class="max-w-md mx-auto flex justify-around">
+            <button onclick="switchView('daily')" id="nav-daily" class="nav-active flex-1 py-2 flex flex-col items-center gap-1 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg><span class="text-[10px] font-bold">日別登録</span></button>
+            <button onclick="switchView('list')" id="nav-list" class="nav-inactive flex-1 py-2 flex flex-col items-center gap-1 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg><span class="text-[10px] font-bold">一覧確認</span></button>
+            <button onclick="requestTeacherMode()" id="nav-teacher" class="nav-inactive flex-1 py-2 flex flex-col items-center gap-1 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span class="text-[10px] font-bold">教員設定</span></button>
+        </div>
+    </nav>
+
+    <!-- モーダル省略 (前回同様のパスワード・アラートなど。スペース節約のため主要なもののみ) -->
+    <div id="passwordModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-50 opacity-0 transition-opacity"><div class="bg-white p-6 rounded-2xl max-w-sm w-11/12 shadow-2xl" id="passwordModalContent"><h3 class="text-lg font-bold mb-2">教員用パスワード</h3><input type="password" id="teacherPasswordInput" class="w-full px-4 py-2 bg-gray-50 border rounded-lg mb-4 text-center text-xl" placeholder="****"><p id="passwordErrorMsg" class="text-red-500 text-xs font-bold mb-4 hidden text-center">パスワードが違います</p><div class="flex gap-3"><button onclick="closePasswordModal()" class="flex-1 bg-gray-100 font-bold py-2.5 rounded-lg">キャンセル</button><button onclick="verifyPassword()" class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-lg">確認</button></div></div></div>
+    <div id="alertModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-50 opacity-0 transition-opacity"><div class="bg-white p-6 rounded-2xl max-w-sm w-11/12 text-center shadow-2xl" id="alertModalContent"><p id="alertModalMsg" class="text-sm font-bold text-gray-700 mb-5"></p><button onclick="closeAlertModal()" class="w-full bg-gray-100 font-bold py-2.5 rounded-lg">閉じる</button></div></div>
+    <div id="confirmModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-50 opacity-0 transition-opacity"><div class="bg-white p-6 rounded-2xl max-w-sm w-11/12 shadow-2xl" id="confirmModalContent"><p id="confirmModalMsg" class="text-sm font-bold text-gray-700 mb-5"></p><div class="flex gap-2"><button onclick="closeConfirmModal(false)" class="flex-1 bg-gray-100 font-bold py-2.5 rounded-lg">キャンセル</button><button onclick="closeConfirmModal(true)" id="confirmConfirmBtn" class="flex-1 bg-red-500 text-white font-bold py-2.5 rounded-lg">実行する</button></div></div></div>
+    <div id="volunteerDetailsModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-end items-center z-50 opacity-0 transition-opacity" onclick="closeVolunteerDetails(event)"><div class="bg-white rounded-2xl max-w-md w-11/12 max-h-[80vh] flex flex-col shadow-2xl transform translate-y-full transition-transform" id="volunteerDetailsContent" onclick="event.stopPropagation()"><div class="p-3 border-b border-gray-100 flex justify-between items-center bg-theme-bg rounded-t-2xl"><div><div id="details-date" class="text-[10px] text-theme-text font-bold"></div><h3 id="details-title" class="text-base font-extrabold text-theme-text"></h3></div><button onclick="closeVolunteerDetails()" class="p-1.5 bg-white text-gray-400 rounded-full shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div><div class="p-3 overflow-y-auto" id="details-list"></div></div></div>
+    <div id="successModal" class="fixed inset-0 bg-gray-900/40 hidden flex-col justify-center items-center z-50 opacity-0 transition-opacity"><div class="bg-white p-6 rounded-2xl max-w-sm w-11/12 text-center shadow-2xl" id="successModalContent"><h2 class="text-lg font-bold text-gray-800 mb-1" id="successModalTitle">完了しました</h2><p class="text-xs text-gray-500 mb-5" id="successModalText"></p><button onclick="closeSuccessModal()" class="w-full bg-gray-100 font-bold py-2.5 rounded-lg">閉じる</button></div></div>
+
+    <script>
+        // ==========================================
+        //  設定: GASのデプロイURLをここに貼り付けます
+        // ==========================================
+        const GAS_API_URL = "https://docs.google.com/spreadsheets/d/1AR3jXY8E-R5Q9A-GcK0YyW8TCTVCCWErVnaNTHT2wbk/edit?usp=drivesdk";
+
+        // ==========================================
+        let scheduleData = [];
+        let currentDateIndex = 0; 
+        let currentClass = 1; 
+        let pendingSelections = {};
+        let teacherEditingData = [];
+        let teacherEditingHoliday = false; 
+        let confirmCallback = null;
+
+        window.onload = () => {
+            fetchScheduleData();
+        };
+
+        // fetch を使った通信に書き換え
+        function fetchScheduleData() {
+            if (GAS_API_URL.includes("★")) {
+                document.getElementById('daily-slots-container').innerHTML = `<div class="w-full text-center py-10 text-red-500 font-bold text-sm">【エラー】ソースコード内の GAS_API_URL を設定してください。</div>`;
+                return;
+            }
+            
+            fetch(GAS_API_URL)
+                .then(res => res.json())
+                .then(serverData => {
+                    scheduleData = serverData;
+                    
+                    const today = new Date();
+                    const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+                    let foundIndex = scheduleData.findIndex(d => d.dateStr === todayStr);
+                    currentDateIndex = foundIndex !== -1 ? foundIndex : 0;
+
+                    if(!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
+                    if(!document.getElementById('view-list').classList.contains('hidden')) renderListView();
+                })
+                .catch(err => {
+                    document.getElementById('daily-slots-container').innerHTML = `<div class="w-full text-center py-10 text-red-500 font-bold text-sm">通信エラー。再読み込みしてください。</div>`;
+                });
+        }
+
+        // fetch を使ったPOST通信の共通関数
+        function postToGAS(payload, successTitle, successText, callback) {
+            fetch(GAS_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' }, // CORS回避のため text/plain
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if(result.success) {
+                    if(successTitle) showSuccessModal(successTitle, successText);
+                    if(callback) callback();
+                    fetchScheduleData(); // 再取得
+                } else {
+                    showAlertModal('処理に失敗しました。');
+                    if(callback) callback();
+                }
+            })
+            .catch(err => {
+                showAlertModal('通信エラーが発生しました。');
+                if(callback) callback();
+            });
+        }
+
+        // --- ビュー切り替え ---
+        function switchView(viewName) {
+            document.getElementById('view-daily').classList.add('hidden');
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-teacher').classList.add('hidden');
+            document.getElementById('submit-footer').classList.add('hidden');
+            
+            ['daily', 'list', 'teacher'].forEach(v => {
+                document.getElementById(`nav-${v}`).className = 'nav-inactive flex-1 py-2 flex flex-col items-center gap-1 transition-colors';
+            });
+
+            if (viewName === 'daily') {
+                document.getElementById('view-daily').classList.remove('hidden');
+                document.getElementById('submit-footer').classList.remove('hidden');
+                document.getElementById('nav-daily').className = 'nav-active flex-1 py-2 flex flex-col items-center gap-1 transition-colors';
+                renderDailyView();
+            } else if (viewName === 'list') {
+                document.getElementById('view-list').classList.remove('hidden');
+                document.getElementById('submit-footer').classList.remove('hidden');
+                document.getElementById('nav-list').className = 'nav-active flex-1 py-2 flex flex-col items-center gap-1 transition-colors';
+                renderListView();
+            } else if (viewName === 'teacher') {
+                document.getElementById('view-teacher').classList.remove('hidden');
+                document.getElementById('nav-teacher').className = 'nav-active flex-1 py-2 flex flex-col items-center gap-1 transition-colors';
+                loadTeacherSettingsForCurrent();
+            }
+            document.getElementById('main-scroll-area').scrollTo(0, 0);
+        }
+
+        function requestTeacherMode() { openPasswordModal(); }
+        function changeClass() {
+            currentClass = parseInt(document.querySelector('input[name="studentClass"]:checked').value);
+            document.body.setAttribute('data-theme', currentClass);
+            document.getElementById('display-current-class-footer').innerText = `${currentClass}組`;
+            pendingSelections = {};
+            if (!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
+            else if (!document.getElementById('view-list').classList.contains('hidden')) renderListView();
+            updateSelectedCount();
+        }
+        function updateSelectedCount() { document.getElementById('selected-count').innerText = Object.keys(pendingSelections).length; }
+
+        // --- 1日表示 ---
+        function changeDate(delta) {
+            let newIndex = currentDateIndex + delta;
+            if (newIndex >= 0 && newIndex < scheduleData.length) {
+                currentDateIndex = newIndex;
+                if (!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
+            }
+        }
+        function renderDailyView() {
+            const day = scheduleData[currentDateIndex];
+            if (!day) return;
+            document.getElementById('daily-date-display').innerText = day.dateStr;
+            document.getElementById('daily-day-display').innerText = `(${day.dayOfWeek})`;
+
+            const container = document.getElementById('daily-slots-container');
+            const isTargetDay = (day.dayOfWeek === '月' || day.dayOfWeek === '水' || day.dayOfWeek === '金');
+            
+            if (isTargetDay) { container.className = 'p-3 space-y-3 transition-colors duration-300 bg-theme-bg rounded-lg'; } 
+            else { container.className = 'p-3 space-y-3 transition-colors duration-300 bg-transparent'; }
+            container.innerHTML = '';
+
+            if (day.isHoliday) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-48 text-red-400 font-bold bg-white rounded-xl border border-red-100 shadow-sm mt-4"><svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg><span class="text-base">お休みです</span></div>`;
+                return;
+            } 
+            if (day.slots.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm font-bold bg-white rounded-xl border border-gray-100 mt-4">募集している項目はありません</div>`;
+                return;
+            }
+
+            day.slots.forEach(slot => {
+                const slotId = `${day.dateStr}_${slot.id}`;
+                const pendingKey = `${day.dateStr}_${slot.name}`;
+                const slotCard = document.createElement('div');
+                slotCard.className = 'bg-white rounded-xl p-4 shadow-sm border border-gray-100';
+
+                const parentsList = currentClass === 1 ? slot.registeredParents1 : slot.registeredParents2;
+                const teacherNote = currentClass === 1 ? slot.teacherNote1 : slot.teacherNote2;
+                
+                let countBadge = parentsList && parentsList.length > 0 
+                    ? `<button onclick="showVolunteerDetails('${day.dateStr}', ${slot.id}, ${currentClass})" class="bg-theme-bg text-theme-text text-[11px] px-2 py-1 rounded flex items-center gap-1 font-bold border border-theme-border hover:opacity-80 transition-colors">${parentsList.length}名<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>` 
+                    : `<span class="bg-gray-50 text-gray-400 text-[11px] px-2 py-1 rounded font-bold border border-gray-100">0名</span>`;
+
+                const timeHTML = slot.timeInfo ? `<div class="text-[11px] text-gray-500 bg-gray-50 px-2 py-1 rounded-md inline-block mb-2 font-mono border border-gray-100">${slot.timeInfo}</div>` : '';
+                const teacherNoteHTML = teacherNote ? `<div class="mb-3 p-2.5 bg-yellow-50/80 rounded-lg text-xs font-bold text-yellow-800 flex items-start gap-1 border border-yellow-100"><svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>${teacherNote}</span></div>` : '';
+
+                const isChecked = !!pendingSelections[pendingKey];
+                const memoValue = isChecked ? pendingSelections[pendingKey].memo : '';
+
+                slotCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-1"><h4 class="font-bold text-gray-800 text-base leading-tight">${slot.name}</h4>${countBadge}</div>
+                    ${timeHTML}${teacherNoteHTML}
+                    <label class="block cursor-pointer mt-1 relative">
+                        <input type="checkbox" id="checkbox-${slotId}" class="shift-checkbox sr-only" ${isChecked ? 'checked' : ''} onchange="toggleMemo(this, '${day.dateStr}', '${slot.name}', '${slotId}')">
+                        <div class="w-full py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-400 bg-white text-center transition-all select-none">${isChecked ? '✓ 選択中' : '＋ 参加する'}</div>
+                    </label>
+                    <div id="memo-wrapper-${slotId}" class="memo-wrapper mt-0 ${isChecked ? 'open' : ''}"><div class="pt-3"><input type="text" id="memo-${slotId}" value="${memoValue}" placeholder="特記事項・質問など (任意)" onchange="updatePendingMemo('${day.dateStr}', '${slot.name}', this.value)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-theme-main transition-colors"></div></div>
+                `;
+                container.appendChild(slotCard);
+            });
+        }
+        function toggleMemo(checkbox, dateStr, slotName, slotId) {
+            const wrapper = document.getElementById(`memo-wrapper-${slotId}`);
+            const pendingKey = `${dateStr}_${slotName}`;
+            if (checkbox.checked) {
+                wrapper.classList.add('open'); checkbox.nextElementSibling.innerText = '✓ 選択中';
+                pendingSelections[pendingKey] = { memo: '' };
+            } else {
+                wrapper.classList.remove('open'); checkbox.nextElementSibling.innerText = '＋ 参加する';
+                delete pendingSelections[pendingKey];
+                setTimeout(() => { const m = document.getElementById(`memo-${slotId}`); if(m) m.value = ''; }, 300);
+            }
+            updateSelectedCount();
+        }
+        function updatePendingMemo(dateStr, slotName, value) {
+            const key = `${dateStr}_${slotName}`;
+            if (pendingSelections[key]) pendingSelections[key].memo = value;
+        }
+
+        // --- 一覧表示 ---
+        function renderListView() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            let currentMonth = '';
+            
+            scheduleData.forEach((day, index) => {
+                const m = day.dateStr.split('/')[0];
+                if (m !== currentMonth) {
+                    currentMonth = m;
+                    const monthHeader = document.createElement('div');
+                    monthHeader.className = 'bg-theme-main text-white px-4 py-1 text-xs font-bold sticky top-0 z-10 transition-colors';
+                    monthHeader.innerText = `${m}月`;
+                    container.appendChild(monthHeader);
+                }
+
+                const item = document.createElement('div');
+                if (day.isHoliday) {
+                    item.className = 'px-4 py-2 flex items-center justify-between text-gray-300 bg-white';
+                    item.innerHTML = `<div class="w-16 font-bold text-sm">${day.dateStr} <span class="text-[10px]">(${day.dayOfWeek})</span></div><div class="text-xs">お休み</div>`;
+                } else if (day.slots.length === 0) {
+                    item.className = 'px-4 py-2 flex items-center justify-between text-gray-400 bg-white';
+                    item.innerHTML = `<div class="w-16 font-bold text-sm">${day.dateStr} <span class="text-[10px]">(${day.dayOfWeek})</span></div><div class="text-xs">募集なし</div>`;
+                } else {
+                    item.className = 'px-4 py-3 flex items-center justify-between bg-white hover:bg-theme-bg active:bg-theme-light transition-colors cursor-pointer';
+                    item.onclick = () => { currentDateIndex = index; switchView('daily'); };
+                    
+                    let registeredCount = 0; let hasMyPending = false;
+                    day.slots.forEach(slot => {
+                        const parents = currentClass === 1 ? slot.registeredParents1 : slot.registeredParents2;
+                        if(parents) registeredCount += parents.length;
+                        if(pendingSelections[`${day.dateStr}_${slot.name}`]) hasMyPending = true;
+                    });
+                    
+                    const pendingBadge = hasMyPending ? `<span class="bg-theme-main text-white text-[9px] px-1.5 py-0.5 rounded font-bold mr-2">選択中</span>` : '';
+                    const dateColor = (day.dayOfWeek === '月' || day.dayOfWeek === '水' || day.dayOfWeek === '金') ? 'text-theme-text' : 'text-gray-800';
+
+                    item.innerHTML = `
+                        <div class="flex items-center"><div class="w-16 font-extrabold text-sm ${dateColor}">${day.dateStr} <span class="text-[10px] font-bold">(${day.dayOfWeek})</span></div>${pendingBadge}</div>
+                        <div class="text-right"><div class="text-[11px] font-bold text-gray-500">募集: ${day.slots.length}枠</div><div class="text-[10px] text-theme-text mt-0.5">現在 ${registeredCount}名登録</div></div>
+                    `;
+                }
+                container.appendChild(item);
+            });
+        }
+
+        // --- 教員用画面 ---
+        function verifyPassword() {
+            if (document.getElementById('teacherPasswordInput').value === '5963') {
+                closePasswordModal(); switchView('teacher');
+            } else {
+                document.getElementById('passwordErrorMsg').classList.remove('hidden');
+                document.getElementById('teacherPasswordInput').classList.add('ring-2', 'ring-red-500', 'border-red-500');
+                setTimeout(() => document.getElementById('teacherPasswordInput').classList.remove('ring-2', 'ring-red-500', 'border-red-500'), 1000);
+            }
+        }
+        function exitTeacherMode() { switchView('daily'); }
+        function changeTeacherDate(delta) {
+            let newIndex = currentDateIndex + delta;
+            if (newIndex >= 0 && newIndex < scheduleData.length) {
+                currentDateIndex = newIndex; loadTeacherSettingsForCurrent();
+            }
+        }
+        function loadTeacherSettingsForCurrent() {
+            const dayData = scheduleData[currentDateIndex];
+            if (!dayData) return;
+            document.getElementById('teacher-date-display').innerText = dayData.dateStr;
+            document.getElementById('teacher-day-display').innerText = `(${dayData.dayOfWeek})`;
+            teacherEditingData = JSON.parse(JSON.stringify(dayData.slots || []));
+            teacherEditingHoliday = dayData.isHoliday || false;
+            document.getElementById('teacher-holiday-toggle').checked = teacherEditingHoliday;
+            toggleTeacherHoliday(true);
+        }
+        function toggleTeacherHoliday(isInit = false) {
+            if (!isInit) teacherEditingHoliday = document.getElementById('teacher-holiday-toggle').checked;
+            const wrapper = document.getElementById('teacher-slots-wrapper');
+            if (teacherEditingHoliday) { wrapper.style.opacity = '0.4'; wrapper.style.pointerEvents = 'none'; } 
+            else { wrapper.style.opacity = '1'; wrapper.style.pointerEvents = 'auto'; }
+            renderTeacherSlots();
+        }
+        function renderTeacherSlots() {
+            const container = document.getElementById('teacher-slots-container');
+            container.innerHTML = '';
+            if (teacherEditingData.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-gray-400 text-xs bg-gray-50 rounded-xl border border-dashed border-gray-300">募集項目がありません</div>`;
+                return;
+            }
+            teacherEditingData.forEach((slot, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white border border-gray-200 p-2 rounded-xl flex flex-col gap-1.5 relative shadow-sm';
+                const count1 = slot.registeredParents1 ? slot.registeredParents1.length : 0;
+                const count2 = slot.registeredParents2 ? slot.registeredParents2.length : 0;
+                const selectedDate = scheduleData[currentDateIndex].dateStr;
+                
+                div.innerHTML = `
+                    <div class="flex flex-wrap gap-1.5 items-center">
+                        <input type="text" value="${slot.name}" onchange="teacherEditingData[${index}].name = this.value" placeholder="項目名" class="flex-1 min-w-[100px] px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" value="${slot.timeInfo || ''}" onchange="teacherEditingData[${index}].timeInfo = this.value" placeholder="時間" class="w-20 flex-none px-1 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center font-mono">
+                        <button onclick="removeTeacherSlot(${index})" class="text-red-400 hover:text-red-600 px-1 flex-none"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
+                    <div class="flex flex-col gap-1 border-t border-gray-100 pt-1.5">
+                        <div class="flex items-center gap-1"><div class="w-8 text-center text-[9px] font-bold text-gray-400 leading-tight">1組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 1)">(${count1}名)</span></div><input type="text" value="${slot.teacherNote1 || ''}" onchange="teacherEditingData[${index}].teacherNote1 = this.value" class="flex-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                        <div class="flex items-center gap-1"><div class="w-8 text-center text-[9px] font-bold text-gray-400 leading-tight">2組<br><span class="text-indigo-600 cursor-pointer" onclick="showVolunteerDetails('${selectedDate}', ${slot.id}, 2)">(${count2}名)</span></div><input type="text" value="${slot.teacherNote2 || ''}" onchange="teacherEditingData[${index}].teacherNote2 = this.value" class="flex-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        function applyPreset(presetType) {
+            showConfirmModal('現在の項目を消去して、プリセットで上書きしますか？', (res) => {
+                if (res) {
+                    const dayData = scheduleData[currentDateIndex];
+                    document.getElementById('teacher-holiday-toggle').checked = false; toggleTeacherHoliday(false);
+                    
+                    const baseSlots = [
+                        { name: '朝の準備', timeInfo: '8:00-8:25' }, { name: '朝学習', timeInfo: '8:25-8:40' },
+                        { name: '1時間目', timeInfo: '8:45-9:30' }, { name: '2時間目', timeInfo: '9:35-10:20' },
+                        { name: '中休み', timeInfo: '10:20-10:40' }, { name: '3時間目', timeInfo: '10:40-11:25' },
+                        { name: '4時間目', timeInfo: '11:30-12:15' }
+                    ];
+                    let slots = [...baseSlots];
+                    if (presetType === 'normal' || presetType === 'lunch4') slots.push({ name: '給食', timeInfo: '12:15-13:00' });
+                    if (presetType === 'normal') {
+                        slots.push({ name: '5時間目', timeInfo: (dayData.dayOfWeek === '金') ? '13:20-14:05' : '13:40-14:25' });
+                        slots.push({ name: '帰りの準備', timeInfo: (dayData.dayOfWeek === '金') ? '14:05-14:20' : '14:25-14:40' });
+                    } else if (presetType === 'lunch4') slots.push({ name: '帰りの準備', timeInfo: '13:00-13:25' });
+                    else if (presetType === 'noLunch4') slots.push({ name: '帰りの準備', timeInfo: '12:15-12:30' });
+                    
+                    teacherEditingData = slots.map((s, idx) => ({ id: Date.now() + idx, name: s.name, timeInfo: s.timeInfo, teacherNote1: '', teacherNote2: '', registeredParents1: [], registeredParents2: [] }));
+                    renderTeacherSlots();
+                }
+            });
+        }
+        function addCustomSlot() { teacherEditingData.push({ id: Date.now(), name: '新しい項目', timeInfo: '', teacherNote1: '', teacherNote2: '', registeredParents1: [], registeredParents2: [] }); renderTeacherSlots(); }
+        function removeTeacherSlot(index) { showConfirmModal('この項目を削除しますか？', (res) => { if(res){ teacherEditingData.splice(index, 1); renderTeacherSlots(); } }); }
+        
+        function saveTeacherSettings() {
+            const btn = document.getElementById('teacherSubmitBtn');
+            const originalText = btn.innerText; btn.innerText = '保存中...'; btn.disabled = true;
+            const payload = {
+                action: 'saveTeacherSettings',
+                selectedDate: scheduleData[currentDateIndex].fullDateStr, // 2026/3/30形式で送る
+                isHoliday: teacherEditingHoliday,
+                slotsData: teacherEditingData
+            };
+            postToGAS(payload, '保存しました', '保護者画面に反映されます。', () => {
+                btn.innerText = originalText; btn.disabled = false;
+            });
+        }
+
+        // --- 送信処理・削除処理 ---
+        function submitForm() {
+            const name = document.getElementById('parentName').value.trim();
+            if (!name) return showAlertModal('保護者氏名を入力してください。');
+            const keys = Object.keys(pendingSelections);
+            if (keys.length === 0) return showAlertModal('参加できる項目を選択してください。');
+
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerText; btn.innerText = '送信中...'; btn.disabled = true;
+
+            const submitData = [];
+            keys.forEach(key => {
+                const [date, slotName] = key.split('_');
+                submitData.push({ name: name, classNum: currentClass, date: date, slotName: slotName, memo: pendingSelections[key].memo });
+            });
+
+            postToGAS({ action: 'submitVolunteerData', submissions: submitData }, '送信完了しました', 'ご協力ありがとうございます。', () => {
+                btn.innerText = originalText; btn.disabled = false;
+                pendingSelections = {};
+            });
+        }
+
+        function deleteVolunteer(dateStr, slotId, classNum, pIndex) {
+            showConfirmModal('予約をキャンセルしますか？', (result) => {
+                if (result) {
+                    const isTeacher = !document.getElementById('view-teacher').classList.contains('hidden');
+                    const slot = isTeacher ? teacherEditingData.find(s => s.id === slotId) : scheduleData[currentDateIndex].slots.find(s => s.id === slotId);
+                    const parentName = classNum === 1 ? slot.registeredParents1[pIndex].name : slot.registeredParents2[pIndex].name;
+                    
+                    // GAS側のデータは "3/30" なのでそのまま送る
+                    postToGAS({ action: 'deleteVolunteerRecord', dateStr: dateStr, slotName: slot.name, classNum: classNum, parentName: parentName }, 'キャンセル完了', '', () => {
+                        closeVolunteerDetails();
+                    });
+                }
+            });
+        }
+
+        // --- モーダル制御 ---
+        function toggleModal(id, show, a = 'center') {
+            const m = document.getElementById(id), c = m.children[0];
+            if (show) { m.classList.remove('hidden'); m.classList.add('flex'); setTimeout(() => { m.classList.remove('opacity-0'); if(a==='bottom') c.classList.remove('translate-y-full'); else c.classList.remove('scale-95'); }, 10); } 
+            else { m.classList.add('opacity-0'); if(a==='bottom') c.classList.add('translate-y-full'); else c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300); }
+        }
+        function showAlertModal(msg) { document.getElementById('alertModalMsg').innerHTML = msg; toggleModal('alertModal', true); }
+        function closeAlertModal() { toggleModal('alertModal', false); }
+        function openPasswordModal() { document.getElementById('teacherPasswordInput').value=''; document.getElementById('passwordErrorMsg').classList.add('hidden'); toggleModal('passwordModal', true); setTimeout(()=>document.getElementById('teacherPasswordInput').focus(),50); }
+        function closePasswordModal() { toggleModal('passwordModal', false); }
+        function showConfirmModal(msg, cb) { confirmCallback = cb; document.getElementById('confirmModalMsg').innerHTML = msg; toggleModal('confirmModal', true); }
+        function closeConfirmModal(res) { toggleModal('confirmModal', false); if(confirmCallback){ confirmCallback(res); confirmCallback=null; } }
+        function showSuccessModal(title, text) { document.getElementById('successModalTitle').innerText = title; document.getElementById('successModalText').innerText = text; toggleModal('successModal', true); }
+        function closeSuccessModal() { toggleModal('successModal', false); }
+        function closeVolunteerDetails(e) { if(e && e.target.id !== 'volunteerDetailsModal') return; toggleModal('volunteerDetailsModal', false, 'bottom'); }
+
+        function showVolunteerDetails(dateStr, slotId, classNum) {
+            const isTeacher = !document.getElementById('view-teacher').classList.contains('hidden');
+            let slot = isTeacher ? teacherEditingData.find(s => s.id === slotId) : scheduleData[currentDateIndex].slots.find(s => s.id === slotId);
+            document.getElementById('details-date').innerText = `${dateStr} - ${classNum}組`;
+            document.getElementById('details-title').innerText = slot.name;
+            const list = document.getElementById('details-list'); list.innerHTML = '';
+            const parents = classNum === 1 ? slot.registeredParents1 : slot.registeredParents2;
+            if (parents && parents.length > 0) {
+                parents.forEach((p, idx) => {
+                    const btn = isTeacher ? `<button onclick="deleteVolunteer('${dateStr}', ${slotId}, ${classNum}, ${idx})" class="text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 border border-red-100">取消</button>` : '';
+                    const memo = p.memo ? `<div class="text-[11px] text-gray-600 bg-gray-50 p-1.5 rounded">${p.memo}</div>` : '';
+                    const item = document.createElement('div'); item.className = 'bg-white border p-2 mb-2 shadow-sm rounded-xl flex flex-col gap-1';
+                    item.innerHTML = `<div class="flex items-center justify-between"><div class="flex items-center gap-1.5"><div class="w-6 h-6 rounded-full bg-theme-light text-theme-main flex items-center justify-center font-bold text-[10px]">${p.name.charAt(0)}</div><span class="font-bold text-xs">${p.name}</span></div>${btn}</div>${memo}`;
+                    list.appendChild(item);
+                });
+            } else { list.innerHTML = `<div class="text-center text-xs text-gray-400 py-3">登録なし</div>`; }
+            toggleModal('volunteerDetailsModal', true, 'bottom');
+        }
+    </script>
+</body>
+</html>
+
+
