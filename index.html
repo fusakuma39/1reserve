@@ -105,6 +105,7 @@
                 </button>
             </div>
 
+            <!-- カレンダー表示領域 -->
             <div id="daily-slots-container" class="p-3 space-y-3 transition-colors duration-300 bg-transparent">
                 <div class="text-center py-10 text-gray-400 text-sm">
                     <svg class="animate-spin h-6 w-6 mx-auto mb-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -229,16 +230,8 @@
             </div>
         </div>
     </div>
-    
-    <div id="alertModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
-        <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="alertModalContent">
-            <h3 class="text-base font-bold text-gray-800 mb-1">確認してください</h3>
-            <p id="alertModalMsg" class="text-xs text-gray-600 mb-5"></p>
-            <button onclick="closeAlertModal()" class="w-full bg-gray-100 font-bold py-2.5 rounded-lg text-sm">閉じる</button>
-        </div>
-    </div>
 
-    <!-- 確認(Confirm) -->
+    <!-- 確認(Confirm) 削除などのときに最も手前に来るように z-[70] に設定 -->
     <div id="confirmModal" class="fixed inset-0 bg-gray-900/50 hidden flex-col justify-center items-center z-[70] opacity-0 transition-opacity px-4">
         <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-95 transition-transform" id="confirmModalContent">
             <h3 class="text-base font-bold text-gray-800 mb-2">確認</h3>
@@ -247,17 +240,6 @@
                 <button onclick="closeConfirmModal(false)" class="flex-1 bg-gray-100 font-bold py-2.5 rounded-lg text-sm">キャンセル</button>
                 <button onclick="closeConfirmModal(true)" id="confirmConfirmBtn" class="flex-1 bg-red-500 text-white font-bold py-2.5 rounded-lg text-sm">実行する</button>
             </div>
-        </div>
-    </div>
-
-    <div id="successModal" class="fixed inset-0 bg-gray-900/40 hidden flex-col justify-center items-center z-[60] opacity-0 transition-opacity px-4">
-        <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="successModalContent">
-            <div class="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <h2 class="text-lg font-bold text-gray-800 mb-1" id="successModalTitle">完了しました</h2>
-            <p class="text-xs text-gray-500 mb-5" id="successModalText"></p>
-            <button onclick="closeSuccessModal()" class="w-full bg-gray-100 font-bold py-2.5 rounded-lg text-sm">閉じる</button>
         </div>
     </div>
 
@@ -276,6 +258,9 @@
             <div class="p-3 overflow-y-auto" id="details-list"></div>
         </div>
     </div>
+
+    <!-- ★新機能：サクサク動くトースト通知（画面下からフワッと出る） -->
+    <div id="toast-container" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[100] transition-all duration-300 opacity-0 pointer-events-none w-11/12 max-w-sm flex flex-col gap-2"></div>
 
     <script>
         // ==========================================
@@ -309,8 +294,35 @@
             return s;
         }
 
-        // 第2〜4引数は、キャンセル時にモーダルを開いたまま再描画するためのもの
-        function fetchScheduleData(keepModalOpen = false, currentSlotId = null, currentClassNum = null) {
+        // --- トースト通知の表示関数 ---
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-xl shadow-lg text-white text-sm font-bold text-center transform transition-all duration-300 translate-y-4 opacity-0 flex items-center justify-center gap-2 ${isError ? 'bg-red-500' : 'bg-gray-800'}`;
+            toast.innerHTML = isError 
+                ? `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${message}`
+                : `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>${message}`;
+            
+            container.appendChild(toast);
+            container.classList.remove('pointer-events-none');
+            
+            // アニメーション表示
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+                container.classList.remove('opacity-0');
+            });
+
+            // 3秒後に消去
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                    if(container.children.length === 0) container.classList.add('opacity-0', 'pointer-events-none');
+                }, 300);
+            }, 3000);
+        }
+
+        function fetchScheduleData(silent = false) {
             fetch(GAS_API_URL)
                 .then(res => res.json())
                 .then(serverData => {
@@ -332,40 +344,16 @@
                         isInitialLoad = false;
                     }
 
-                    if(!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
-                    if(!document.getElementById('view-list').classList.contains('hidden')) renderListView();
-                    if(!document.getElementById('view-teacher').classList.contains('hidden')) loadTeacherSettingsForCurrent();
-
-                    // キャンセル後のモーダル即時更新
-                    if (keepModalOpen && currentSlotId !== null) {
-                        showVolunteerDetails(scheduleData[currentDateIndex].dateStr, currentSlotId, currentClassNum);
+                    // 楽観的UIで更新済みの場合、画面のチラつきを防ぐためにサイレント更新を許可する
+                    if (!silent) {
+                        if(!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
+                        if(!document.getElementById('view-list').classList.contains('hidden')) renderListView();
+                        if(!document.getElementById('view-teacher').classList.contains('hidden')) loadTeacherSettingsForCurrent();
                     }
                 })
                 .catch(err => {
-                    document.getElementById('daily-slots-container').innerHTML = `<div class="w-full text-center py-10 text-red-500 font-bold text-sm">通信エラー。再読み込みしてください。</div>`;
+                    if(!silent) document.getElementById('daily-slots-container').innerHTML = `<div class="w-full text-center py-10 text-red-500 font-bold text-sm">通信エラー。再読み込みしてください。</div>`;
                 });
-        }
-
-        function postToGAS(payload, successTitle, successText, callback) {
-            fetch(GAS_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(result => {
-                if(result.success) {
-                    if(successTitle) showSuccessModal(successTitle, successText);
-                    if(callback) callback(true);
-                } else {
-                    showAlertModal('処理に失敗しました。');
-                    if(callback) callback(false);
-                }
-            })
-            .catch(err => {
-                showAlertModal('通信エラーが発生しました。');
-                if(callback) callback(false);
-            });
         }
 
         function switchView(viewName) {
@@ -623,7 +611,6 @@
         }
         function updateSlotField(index, field, value) { teacherEditingData[index][field] = value; }
 
-        // プリセットも最初から全角で定義
         function generateFrontPresetSlots(presetType, dayOfWeek) {
             const baseSlots = [
                 { name: '朝のしたく', timeInfo: '８：００〜８：２５' }, { name: '朝学習・朝の会', timeInfo: '８：２５〜８：４０' },
@@ -671,15 +658,24 @@
             });
         }
 
+        // --- 楽観的UI: 教員設定の保存 ---
         function saveTeacherSettings() {
             const btn = document.getElementById('teacherSubmitBtn');
-            const originalText = btn.innerText; btn.innerText = '保存中...'; btn.disabled = true;
+            const originalText = btn.innerText; 
+            btn.innerText = '保存しました！';
+            btn.classList.add('bg-green-500');
             
-            // 保存時に入力された半角英数字等も強制的に全角にする
             teacherEditingData.forEach(slot => {
                 slot.name = normalizeText(slot.name);
                 slot.timeInfo = normalizeText(slot.timeInfo);
             });
+
+            showToast('教員設定を保存しました。');
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('bg-green-500');
+            }, 2000);
 
             const payload = {
                 action: 'saveTeacherSettings',
@@ -687,51 +683,109 @@
                 isHoliday: teacherEditingHoliday,
                 slotsData: teacherEditingData
             };
-            postToGAS(payload, '保存しました', '保護者画面に反映されます。', () => {
-                btn.innerText = originalText; btn.disabled = false;
-            });
+            
+            // 裏で非同期通信
+            fetch(GAS_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            }).then(() => fetchScheduleData(true));
         }
 
-        // --- 送信処理 ---
+        // --- 楽観的UI: 送信処理 ---
         function submitForm() {
             const name = document.getElementById('parentName').value.trim();
-            if (!name) return showAlertModal('保護者氏名を入力してください。');
+            if (!name) return showToast('保護者氏名を入力してください。', true);
             const keys = Object.keys(pendingSelections);
-            if (keys.length === 0) return showAlertModal('参加できる項目を選択してください。');
-
-            const btn = document.getElementById('submitBtn');
-            const originalText = btn.innerText; btn.innerText = '送信中...'; btn.disabled = true;
+            if (keys.length === 0) return showToast('参加できる項目を選択してください。', true);
 
             const submitData = [];
             keys.forEach(key => {
                 const [date, slotName] = key.split('_');
                 submitData.push({ name: name, classNum: currentClass, date: date, slotName: slotName, memo: pendingSelections[key].memo });
+                
+                // 楽観的UI：ローカルデータに即座に反映させる
+                const dayObj = scheduleData.find(d => d.dateStr === date);
+                if (dayObj && !dayObj.isHoliday) {
+                    const slotObj = dayObj.slots.find(s => s.name === slotName);
+                    if (slotObj) {
+                        const newParent = { name: name, memo: pendingSelections[key].memo };
+                        if (currentClass === 1) slotObj.registeredParents1.push(newParent);
+                        else slotObj.registeredParents2.push(newParent);
+                    }
+                }
             });
 
-            postToGAS({ action: 'submitVolunteerData', submissions: submitData }, '送信完了しました', 'ご協力ありがとうございます。', () => {
-                btn.innerText = originalText; btn.disabled = false;
-                pendingSelections = {};
+            // 画面を即時更新
+            pendingSelections = {};
+            updateSelectedCount();
+            if (!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
+            else if (!document.getElementById('view-list').classList.contains('hidden')) renderListView();
+            
+            showToast('登録内容を送信しました！ご協力ありがとうございます。');
+
+            // 裏で非同期通信
+            fetch(GAS_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'submitVolunteerData', submissions: submitData })
+            }).then(res => res.json())
+            .then(result => {
+                if(!result.success) {
+                    showToast('送信に失敗しました。画面を更新します。', true);
+                    fetchScheduleData();
+                } else {
+                    fetchScheduleData(true); // 成功時はサイレント更新
+                }
+            }).catch(() => {
+                showToast('通信エラーが発生しました。画面を更新します。', true);
+                fetchScheduleData();
             });
         }
 
-        // 即時反映キャンセルのため、通信完了後にモーダルを開いたままリロードさせる
+        // --- 楽観的UI: キャンセル処理 ---
         function deleteVolunteer(dateStr, slotId, classNum, pIndex) {
             showConfirmModal('予約をキャンセルしますか？', (result) => {
                 if (result) {
                     const isTeacher = !document.getElementById('view-teacher').classList.contains('hidden');
-                    const slot = isTeacher ? teacherEditingData.find(s => s.id === slotId) : scheduleData[currentDateIndex].slots.find(s => s.id === slotId);
+                    const dayData = scheduleData.find(d => d.dateStr === dateStr);
+                    const slot = dayData.slots.find(s => s.id === slotId);
+                    const tSlot = isTeacher ? teacherEditingData.find(s => s.id === slotId) : null;
+                    
                     const parentName = classNum === 1 ? slot.registeredParents1[pIndex].name : slot.registeredParents2[pIndex].name;
                     
-                    // モーダルの中身を「処理中」にする
-                    document.getElementById('details-list').innerHTML = `<div class="text-center py-6 text-theme-main text-xs font-bold">キャンセル処理中...</div>`;
+                    // 楽観的UI：ローカルデータから即座に削除
+                    if (classNum === 1) {
+                        slot.registeredParents1.splice(pIndex, 1);
+                        if(tSlot) tSlot.registeredParents1.splice(pIndex, 1);
+                    } else {
+                        slot.registeredParents2.splice(pIndex, 1);
+                        if(tSlot) tSlot.registeredParents2.splice(pIndex, 1);
+                    }
+
+                    // モーダルと背面のビューを即時更新
+                    showVolunteerDetails(dateStr, slotId, classNum);
+                    if (isTeacher) renderTeacherSlots();
+                    else if (!document.getElementById('view-daily').classList.contains('hidden')) renderDailyView();
                     
-                    // アラートなしで送信し、終わったらモーダルを開いたまま再取得する
-                    postToGAS({ action: 'deleteVolunteerRecord', dateStr: dateStr, slotName: slot.name, classNum: classNum, parentName: parentName }, '', '', (isSuccess) => {
-                        if(isSuccess) {
-                            fetchScheduleData(true, slotId, classNum); // モーダル維持フラグON
+                    showToast('予約をキャンセルしました。');
+
+                    // 裏で非同期通信
+                    fetch(GAS_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ action: 'deleteVolunteerRecord', dateStr: dateStr, slotName: slot.name, classNum: classNum, parentName: parentName })
+                    }).then(res => res.json())
+                    .then(result => {
+                        if(!result.success) {
+                            showToast('キャンセルに失敗しました。画面を更新します。', true);
+                            fetchScheduleData();
                         } else {
-                            closeVolunteerDetails();
+                            fetchScheduleData(true); // 成功時はサイレント更新
                         }
+                    }).catch(() => {
+                        showToast('通信エラーが発生しました。', true);
+                        fetchScheduleData();
                     });
                 }
             });
@@ -743,29 +797,22 @@
             if (show) { m.classList.remove('hidden'); m.classList.add('flex'); setTimeout(() => { m.classList.remove('opacity-0'); if(a==='bottom') c.classList.remove('translate-y-full'); else c.classList.remove('scale-95'); }, 10); } 
             else { m.classList.add('opacity-0'); if(a==='bottom') c.classList.add('translate-y-full'); else c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300); }
         }
-        function showAlertModal(msg) { document.getElementById('alertModalMsg').innerHTML = msg; toggleModal('alertModal', true); }
-        function closeAlertModal() { toggleModal('alertModal', false); }
         function openPasswordModal() { document.getElementById('teacherPasswordInput').value=''; document.getElementById('passwordErrorMsg').classList.add('hidden'); toggleModal('passwordModal', true); setTimeout(()=>document.getElementById('teacherPasswordInput').focus(),50); }
         function closePasswordModal() { toggleModal('passwordModal', false); }
         function showConfirmModal(msg, cb) { confirmCallback = cb; document.getElementById('confirmModalMsg').innerHTML = msg; toggleModal('confirmModal', true); }
         function closeConfirmModal(res) { toggleModal('confirmModal', false); if(confirmCallback){ confirmCallback(res); confirmCallback=null; } }
-        function showSuccessModal(title, text) { document.getElementById('successModalTitle').innerText = title; document.getElementById('successModalText').innerText = text; toggleModal('successModal', true); }
-        function closeSuccessModal() { toggleModal('successModal', false); }
         function closeVolunteerDetails(e) { if(e && e.target.id !== 'volunteerDetailsModal') return; toggleModal('volunteerDetailsModal', false, 'bottom'); }
 
         function showVolunteerDetails(dateStr, slotId, classNum) {
             const isTeacher = !document.getElementById('view-teacher').classList.contains('hidden');
             let slot = isTeacher ? teacherEditingData.find(s => s.id === slotId) : scheduleData[currentDateIndex].slots.find(s => s.id === slotId);
+            
+            if (!slot) { closeVolunteerDetails(); return; } // データ不整合時の回避
+
             document.getElementById('details-date').innerText = `${dateStr} - ${classNum === 1 ? '１' : '２'}組`;
             document.getElementById('details-title').innerText = slot.name;
             const list = document.getElementById('details-list'); list.innerHTML = '';
             
-            // slotが存在しない場合（削除されてしまった後など）の回避
-            if (!slot) {
-                closeVolunteerDetails();
-                return;
-            }
-
             const parents = classNum === 1 ? slot.registeredParents1 : slot.registeredParents2;
             
             if (parents && parents.length > 0) {
@@ -782,5 +829,3 @@
     </script>
 </body>
 </html>
-
-
